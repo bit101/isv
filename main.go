@@ -12,8 +12,19 @@ import (
 	"fyne.io/fyne/v2/canvas"
 )
 
+// AnimMode represents the animation state.
+type AnimMode int
+
+// AnimModes
+const (
+	Stopped AnimMode = iota
+	Forward
+	Reverse
+	Bounce
+)
+
 var (
-	mode     = "stopped"
+	mode     = Stopped
 	watchDir = false
 	index    = 0
 	dir      = "."
@@ -27,14 +38,17 @@ var (
 )
 
 func main() {
+	// make gui
 	a := app.New()
 	w = a.NewWindow("Images")
 	img = &canvas.Image{}
-	w.SetContent(img)
 	img.FillMode = canvas.ImageFillOriginal
+	w.SetContent(img)
+
+	// events
 	w.Canvas().SetOnTypedKey(handleKeys)
 
-	// dir = "out/frames"
+	// load image list and first image
 	readDir()
 	loadImage()
 
@@ -42,15 +56,21 @@ func main() {
 }
 
 func loadImage() {
+	// no entries, nothing to load.
 	if len(entries) == 0 {
 		index = 0
 		return
 	}
+
+	// probably deleted some images since last load.
 	if index >= len(entries) {
 		index = 0
 	}
+
 	name := entries[index].Name()
 	filepath := path.Join(dir, name)
+
+	// make sure it exists before loading it (could have been deleted since last check)
 	if _, err := os.Stat(filepath); err == nil {
 		w.SetTitle(name)
 		img.File = filepath
@@ -59,9 +79,10 @@ func loadImage() {
 }
 
 func animate() {
-	for mode == "forward" {
+	for mode == Forward {
 		loadImage()
 		index++
+		// loop back to start
 		if index >= len(entries) {
 			index = 0
 		}
@@ -70,9 +91,10 @@ func animate() {
 }
 
 func reverse() {
-	for mode == "reverse" {
+	for mode == Reverse {
 		loadImage()
 		index--
+		// loop back to end
 		if index < 0 {
 			index = len(entries) - 1
 		}
@@ -82,9 +104,10 @@ func reverse() {
 
 func bounce() {
 	direction := 1
-	for mode == "bounce" {
+	for mode == Bounce {
 		loadImage()
 		index += direction
+		// go the other way
 		if index >= len(entries) || index < 0 {
 			direction *= -1
 			index += direction
@@ -115,14 +138,14 @@ func handleKeys(k *fyne.KeyEvent) {
 	}
 
 	// next frame - right arrow
-	if k.Name == fyne.KeyRight && mode == "stopped" {
+	if k.Name == fyne.KeyRight && mode == Stopped {
 		index++
 		index %= len(entries)
 		loadImage()
 	}
 
 	// prev frame - left arrow
-	if k.Name == fyne.KeyLeft && mode == "stopped" {
+	if k.Name == fyne.KeyLeft && mode == Stopped {
 		index--
 		if index < 0 {
 			index += len(entries)
@@ -131,50 +154,50 @@ func handleKeys(k *fyne.KeyEvent) {
 	}
 
 	// first frame - F
-	if k.Name == fyne.KeyF && mode == "stopped" {
+	if k.Name == fyne.KeyF && mode == Stopped {
 		index = 0
 		loadImage()
 	}
 
 	// last frame - L
-	if k.Name == fyne.KeyL && mode == "stopped" {
+	if k.Name == fyne.KeyL && mode == Stopped {
 		index = len(entries) - 1
 		loadImage()
 	}
 
 	// play forward - P
 	if k.Name == fyne.KeyP {
-		if mode == "forward" {
-			mode = "stopped"
+		if mode == Forward {
+			mode = Stopped
 		} else {
-			mode = "forward"
+			mode = Forward
 			go animate()
 		}
 	}
 
 	// play reverse - R
 	if k.Name == fyne.KeyR {
-		if mode == "reverse" {
-			mode = "stopped"
+		if mode == Reverse {
+			mode = Stopped
 		} else {
-			mode = "reverse"
+			mode = Reverse
 			go reverse()
 		}
 	}
 
 	// play bounce - B
 	if k.Name == fyne.KeyB {
-		if mode == "bounce" {
-			mode = "stopped"
+		if mode == Bounce {
+			mode = Stopped
 		} else {
-			mode = "bounce"
+			mode = Bounce
 			go bounce()
 		}
 	}
 
 	// stop playing - SPACE
 	if k.Name == fyne.KeySpace {
-		mode = "stopped"
+		mode = Stopped
 	}
 
 	// increase animation speed - up arrow
