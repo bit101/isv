@@ -289,4 +289,9 @@ func handleKeys(k *fyne.KeyEvent) {
 			watchTime = 10
 		}
 	}
+
+	// manually refresh image list - F5
+	if k.Name == fyne.KeyF5 {
+		readDir()
+	}
 }
