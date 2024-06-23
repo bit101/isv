@@ -6,11 +6,13 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
+	"github.com/bit101/isv/res"
 	flag "github.com/spf13/pflag"
 )
 
@@ -30,12 +32,12 @@ var (
 	watchDir = false
 	index    = 0
 	dir      = "."
-	version  = "v0.0.2"
+	version  = "v0.0.3"
 
 	delay     time.Duration = 30
 	watchTime time.Duration = 5
 
-	entries     []os.DirEntry
+	entries     []string
 	img         *canvas.Image
 	w           fyne.Window
 	initPlay    bool
@@ -67,8 +69,9 @@ func main() {
 	// make gui
 	a := app.New()
 	w = a.NewWindow("Images")
+	w.Resize(fyne.NewSize(400, 400))
 	img = &canvas.Image{}
-	img.FillMode = canvas.ImageFillOriginal
+	img.FillMode = canvas.ImageFillContain
 	w.SetContent(img)
 
 	// events
@@ -112,6 +115,7 @@ func loadImage() {
 	if len(entries) == 0 {
 		index = 0
 		readDir()
+		img.Resource = res.Placeholder()
 		return
 	}
 
@@ -122,7 +126,7 @@ func loadImage() {
 		index = 0
 	}
 
-	name := entries[index].Name()
+	name := entries[index]
 	filepath := path.Join(dir, name)
 
 	// make sure it exists before loading it (could have been deleted since last check)
@@ -190,7 +194,20 @@ func readDir() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	entries = list
+	entries = filterImages(list)
+}
+
+func filterImages(list []os.DirEntry) []string {
+	names := []string{}
+	for _, f := range list {
+		name := f.Name()
+		if strings.HasSuffix(name, ".png") ||
+			strings.HasSuffix(name, ".jpg") ||
+			strings.HasSuffix(name, ".jpeg") {
+			names = append(names, name)
+		}
+	}
+	return names
 }
 
 func handleKeys(k *fyne.KeyEvent) {
@@ -202,7 +219,9 @@ func handleKeys(k *fyne.KeyEvent) {
 	// next frame - right arrow
 	if k.Name == fyne.KeyRight && mode == Stopped {
 		index++
-		index %= len(entries)
+		if index >= len(entries) {
+			index = 0
+		}
 		loadImage()
 	}
 
