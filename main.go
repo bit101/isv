@@ -2,6 +2,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -10,6 +11,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
+	flag "github.com/spf13/pflag"
 )
 
 // AnimMode represents the animation state.
@@ -28,14 +30,38 @@ var (
 	watchDir = false
 	index    = 0
 	dir      = "."
+	version  = "v0.0.2"
 
 	delay     time.Duration = 30
 	watchTime time.Duration = 5
 
-	entries []os.DirEntry
-	img     *canvas.Image
-	w       fyne.Window
+	entries     []os.DirEntry
+	img         *canvas.Image
+	w           fyne.Window
+	initPlay    bool
+	initBounce  bool
+	initWatch   int
+	initHelp    bool
+	initVersion bool
 )
+
+func init() {
+	flag.BoolVarP(&initPlay, "play", "p", false, "plays the image sequence on start")
+	flag.BoolVarP(&initBounce, "bounce", "b", false, "plays the image sequence back and forth on start")
+	flag.IntVarP(&initWatch, "watch", "w", 0, "rescans dir every n (1-10) seconds")
+	flag.BoolVarP(&initHelp, "help", "h", false, "shows this help")
+	flag.BoolVarP(&initVersion, "version", "v", false, "shows the version number")
+
+	flag.Usage = func() {
+		fmt.Print("Usage:\n  isv [options] directory_path\nOptions:\n")
+		flag.PrintDefaults()
+	}
+	flag.Parse()
+	dir = flag.Arg(0)
+	if dir == "" {
+		dir = "."
+	}
+}
 
 func main() {
 	// make gui
@@ -48,22 +74,51 @@ func main() {
 	// events
 	w.Canvas().SetOnTypedKey(handleKeys)
 
+	if initHelp {
+		flag.Usage()
+		os.Exit(0)
+	}
+
+	if initVersion {
+		fmt.Printf("isv version: %s\n", version)
+		os.Exit(0)
+	}
+
 	// load image list and first image
 	readDir()
-	loadImage()
+	if initPlay {
+		go animate()
+	} else if initBounce {
+		go bounce()
+	} else {
+		loadImage()
+	}
+
+	if initWatch > 0 {
+		watchTime = time.Duration(initWatch)
+		if watchTime > 10 {
+			watchTime = 10
+		}
+		watchDir = true
+		go watch()
+	}
 
 	w.ShowAndRun()
 }
 
 func loadImage() {
 	// no entries, nothing to load.
+	// read list again and jump.
 	if len(entries) == 0 {
 		index = 0
+		readDir()
 		return
 	}
 
 	// probably deleted some images since last load.
+	// read list again and start again at 0.
 	if index >= len(entries) {
+		readDir()
 		index = 0
 	}
 
@@ -75,10 +130,14 @@ func loadImage() {
 		w.SetTitle(name)
 		img.File = filepath
 		img.Refresh()
+	} else {
+		// make sure we're up to date.
+		readDir()
 	}
 }
 
 func animate() {
+	mode = Forward
 	for mode == Forward {
 		loadImage()
 		index++
@@ -91,6 +150,7 @@ func animate() {
 }
 
 func reverse() {
+	mode = Reverse
 	for mode == Reverse {
 		loadImage()
 		index--
@@ -104,6 +164,7 @@ func reverse() {
 
 func bounce() {
 	direction := 1
+	mode = Bounce
 	for mode == Bounce {
 		loadImage()
 		index += direction
@@ -119,6 +180,7 @@ func bounce() {
 func watch() {
 	for watchDir {
 		readDir()
+		fmt.Println(watchTime * time.Second)
 		time.Sleep(watchTime * time.Second)
 	}
 }
@@ -170,7 +232,6 @@ func handleKeys(k *fyne.KeyEvent) {
 		if mode == Forward {
 			mode = Stopped
 		} else {
-			mode = Forward
 			go animate()
 		}
 	}
@@ -180,7 +241,6 @@ func handleKeys(k *fyne.KeyEvent) {
 		if mode == Reverse {
 			mode = Stopped
 		} else {
-			mode = Reverse
 			go reverse()
 		}
 	}
@@ -190,7 +250,6 @@ func handleKeys(k *fyne.KeyEvent) {
 		if mode == Bounce {
 			mode = Stopped
 		} else {
-			mode = Bounce
 			go bounce()
 		}
 	}
