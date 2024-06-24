@@ -24,7 +24,7 @@ Press the same key again to turn off animation, or just press the space bar.
 
 `isv` will attempt to run this animation at 30 fps. How well it does that depends on your hardware and the size of the images. I've found it does well with images up to 200-300 kb, and starts to gett a little stuttery with anything much larger. Note that `isv` is NOT meant as a general purpose image viewer and is not at all optimized for larger images.
 
-You can use the up arrow key to increase the playback speed, which will eventually remove any delay between frames and play then back as fast as your computer can handle them. Press the down arrow key to slow down the speed. Minimum speed is 1 fps. 
+You can use the up arrow key to increase the playback speed, which will eventually remove any delay between frames and play them back as fast as your computer can handle them. Press the down arrow key to slow down the speed. Minimum speed is 1 fps. 
 
 You can also use the number keys 1-9 to target 1-9 fps. Or 0 to go back to the default 30 fps.
 
@@ -36,21 +36,20 @@ Press `w` to start "watching" the directory. Technically, it's just reloading ev
 
 ### Cheat sheet
 
-`p` play forward
-`r` play reverse
-`b` play bounce
-`right arrow` next frame
-`left arrow` prev frame
-`f` first frame
-`l` last frame
-`up arrow` increase playback rate
-`down arrow` decrease playback rate
-`1` - `9` to set playback rate to 1-9 fps
-`0` to set playback rate to 30 fps
-
-`w` to start watching the directory
-`<` (or `.`) to increase refresh rate
-`>` (or `.`) to decrease refresh rate
+- `p` play forward
+- `r` play reverse
+- `b` play bounce
+- `right arrow` next frame
+- `left arrow` prev frame
+- `f` first frame
+- `l` last frame
+- `up arrow` increase playback rate
+- `down arrow` decrease playback rate
+- `1` - `9` to set playback rate to 1-9 fps
+- `0` to set playback rate to 30 fps
+- `w` to start watching the directory
+- `<` (or `,`) to increase refresh rate
+- `>` (or `.`) to decrease refresh rate
 
 ### Command line usage
 
