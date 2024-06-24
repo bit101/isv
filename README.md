@@ -4,7 +4,7 @@ An Image Sequence Viewer
 
 ## Use case
 
-You are generating up to several hundred image frames which will later be compiled into an animate gif or video. The generation of frames may take many minutes. You'd like to see how the animation is shaping up during the rendering process.
+You are generating up to several hundred image frames which will later be compiled into an animated gif or video. The generation of frames may take many minutes. You'd like to see how the animation is shaping up during the rendering process.
 
 ## What isv does
 
