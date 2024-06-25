@@ -68,11 +68,13 @@ Options:
 ```
 The default directory path if not specified is the current directory. 
 
-So you can set it to play and watch the directory every 2 seconds by running `isv -p -w 2`.
+So you can set it to play and watch the directory every 2 seconds by running `isv -p -w 2`. Or even `isv -pw 2`.
 
 ## Limitations
 
 As already mentioned, `isv` is NOT meant to be a general purpose image viewer. It is not optimized for large images, only smaller frames of the size you might make a gif or movie for posting on social media.
+
+Any stated frame rates are only an approximation and not guaranteed.
 
 `isv` only previews `jpg`, `jpeg` and `png` files currently.
 
@@ -82,6 +84,8 @@ At this writing, I've only tested this on Ubuntu 24.04.
 
 ### Locally
 
+May not work on Windows without additional tool chain items, like gcc or clang.
+
 0. Install Go.
 1. Check out the repo.
 2. Run `go mod tidy` to update dependencies.
@@ -90,15 +94,16 @@ At this writing, I've only tested this on Ubuntu 24.04.
 
 ### Go install
 
+May not work on Windows without additional tool chain items, like gcc or clang.
+
 0. Install Go.
 1. Run `go install github.com/bit101/isv`
 
-Either way, the first time you compile will take up to 10 minutes as it has to install and compile all the dependencies.
+### Binaries
 
-I'll have some prebuild binaries for whatever platforms I can get it working on eventually.
+Download binary for your platform from [https://github.com/bit101/isv/releases](https://github.com/bit101/isv/releases) and move to a location in your path.
+
 
 ## Future
 
 I do plan to add some basic ui features, tbd.
-
-Prebuild binaries for platforms.
