@@ -32,10 +32,10 @@ var (
 	watchDir = false
 	index    = 0
 	dir      = "."
-	version  = "v0.0.3"
+	version  = "v0.0.4"
 
 	delay     time.Duration = 30
-	watchTime time.Duration = 5
+	watchTime time.Duration = 4
 
 	entries     []string
 	img         *canvas.Image
@@ -184,7 +184,6 @@ func bounce() {
 func watch() {
 	for watchDir {
 		readDir()
-		fmt.Println(watchTime * time.Second)
 		time.Sleep(watchTime * time.Second)
 	}
 }
