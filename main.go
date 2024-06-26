@@ -32,7 +32,7 @@ var (
 	watchDir = false
 	index    = 0
 	dir      = "."
-	version  = "v0.0.4"
+	version  = "v0.0.5"
 	stopping = false
 
 	delay     time.Duration = 30
