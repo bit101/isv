@@ -33,6 +33,7 @@ var (
 	index    = 0
 	dir      = "."
 	version  = "v0.0.4"
+	stopping = false
 
 	delay     time.Duration = 30
 	watchTime time.Duration = 4
@@ -151,6 +152,9 @@ func animate() {
 		}
 		time.Sleep(delay * time.Millisecond)
 	}
+	if mode == Stopped {
+		stopping = false
+	}
 }
 
 func reverse() {
@@ -163,6 +167,9 @@ func reverse() {
 			index = len(entries) - 1
 		}
 		time.Sleep(delay * time.Millisecond)
+	}
+	if mode == Stopped {
+		stopping = false
 	}
 }
 
@@ -178,6 +185,9 @@ func bounce() {
 			index += direction
 		}
 		time.Sleep(delay * time.Millisecond)
+	}
+	if mode == Stopped {
+		stopping = false
 	}
 }
 
@@ -249,7 +259,8 @@ func handleKeys(k *fyne.KeyEvent) {
 	if k.Name == fyne.KeyP {
 		if mode == Forward {
 			mode = Stopped
-		} else {
+			stopping = true
+		} else if !stopping {
 			go animate()
 		}
 	}
@@ -258,7 +269,8 @@ func handleKeys(k *fyne.KeyEvent) {
 	if k.Name == fyne.KeyR {
 		if mode == Reverse {
 			mode = Stopped
-		} else {
+			stopping = true
+		} else if !stopping {
 			go reverse()
 		}
 	}
@@ -267,7 +279,8 @@ func handleKeys(k *fyne.KeyEvent) {
 	if k.Name == fyne.KeyB {
 		if mode == Bounce {
 			mode = Stopped
-		} else {
+			stopping = true
+		} else if !stopping {
 			go bounce()
 		}
 	}
