@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"log"
 	"os"
 	"path"
@@ -12,6 +13,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"github.com/bit101/isv/res"
 	flag "github.com/spf13/pflag"
 )
@@ -32,16 +35,21 @@ var (
 	watchDir = false
 	index    = 0
 	dir      = "."
-	version  = "v0.0.5"
+	version  = "v0.1.0"
 	stopping = false
+	fpsIndex = 3
+	fpsList  = []time.Duration{1, 5, 10, 30, 60, 1000}
+	delay    = 1000 / fpsList[fpsIndex]
 
-	delay     time.Duration = 30
 	watchTime time.Duration = 4
 
 	entries     []string
 	img         *canvas.Image
 	w           fyne.Window
+	modeLabel   *canvas.Text
+	watchLabel  *canvas.Text
 	initPlay    bool
+	initReverse bool
 	initBounce  bool
 	initWatch   int
 	initHelp    bool
@@ -50,6 +58,7 @@ var (
 
 func init() {
 	flag.BoolVarP(&initPlay, "play", "p", false, "plays the image sequence on start")
+	flag.BoolVarP(&initReverse, "reverse", "r", false, "plays the image sequence in reverse on start")
 	flag.BoolVarP(&initBounce, "bounce", "b", false, "plays the image sequence back and forth on start")
 	flag.IntVarP(&initWatch, "watch", "w", 0, "rescans dir every n (1-10) seconds")
 	flag.BoolVarP(&initHelp, "help", "h", false, "shows this help")
@@ -58,6 +67,18 @@ func init() {
 	flag.Usage = func() {
 		fmt.Print("Usage:\n  isv [options] directory_path\nOptions:\n")
 		flag.PrintDefaults()
+		fmt.Println("Keys:")
+		fmt.Println("  left/right: prev/next frame")
+		fmt.Println("  f/l: first/last frame")
+		fmt.Println("  p: play")
+		fmt.Println("  r: reverse")
+		fmt.Println("  b: bounce")
+		fmt.Println("  space: stop")
+		fmt.Println("  up/down: speed")
+		fmt.Println("  w: watch")
+		fmt.Println("  < / >: watch interval")
+		fmt.Println("  F5: manual refresh image list")
+		fmt.Println("  Q/Esc: quit")
 	}
 	flag.Parse()
 	dir = flag.Arg(0)
@@ -69,11 +90,22 @@ func init() {
 func main() {
 	// make gui
 	a := app.New()
-	w = a.NewWindow("Images")
-	w.Resize(fyne.NewSize(400, 400))
+	w = a.NewWindow("isv")
+	w.SetFixedSize(true)
+
 	img = &canvas.Image{}
 	img.FillMode = canvas.ImageFillContain
-	w.SetContent(img)
+	img.SetMinSize(fyne.NewSize(400, 400))
+
+	modeLabel = canvas.NewText("stopped", color.Black)
+	modeLabel.TextSize = 10
+
+	watchLabel = canvas.NewText("not watching", color.Black)
+	watchLabel.TextSize = 10
+
+	labels := container.New(layout.NewHBoxLayout(), layout.NewSpacer(), modeLabel, layout.NewSpacer(), watchLabel, layout.NewSpacer())
+
+	w.SetContent(container.New(layout.NewVBoxLayout(), img, labels))
 
 	// events
 	w.Canvas().SetOnTypedKey(handleKeys)
@@ -92,6 +124,8 @@ func main() {
 	readDir()
 	if initPlay {
 		go animate()
+	} else if initReverse {
+		go reverse()
 	} else if initBounce {
 		go bounce()
 	} else {
@@ -104,6 +138,7 @@ func main() {
 			watchTime = 10
 		}
 		watchDir = true
+		updateWatchLabel()
 		go watch()
 	}
 
@@ -141,8 +176,40 @@ func loadImage() {
 	}
 }
 
+func updateFPS() {
+	fps := fpsList[fpsIndex]
+	text := "stopped"
+
+	if mode == Forward {
+		text = "forward"
+	} else if mode == Reverse {
+		text = "reverse"
+	} else if mode == Bounce {
+		text = "bounce"
+	}
+
+	if mode == Stopped {
+		modeLabel.Text = text
+	} else if fps < 1000 {
+		modeLabel.Text = fmt.Sprintf("%s: %d fps (attempted)", text, fps)
+	} else {
+		modeLabel.Text = fmt.Sprintf("%s: max fps", text)
+	}
+	modeLabel.Refresh()
+}
+
+func updateWatchLabel() {
+	if watchDir {
+		watchLabel.Text = fmt.Sprintf("watching: %ds", watchTime)
+	} else {
+		watchLabel.Text = "not watching"
+	}
+	watchLabel.Refresh()
+}
+
 func animate() {
 	mode = Forward
+	updateFPS()
 	for mode == Forward {
 		loadImage()
 		index++
@@ -154,11 +221,13 @@ func animate() {
 	}
 	if mode == Stopped {
 		stopping = false
+		updateFPS()
 	}
 }
 
 func reverse() {
 	mode = Reverse
+	updateFPS()
 	for mode == Reverse {
 		loadImage()
 		index--
@@ -170,12 +239,14 @@ func reverse() {
 	}
 	if mode == Stopped {
 		stopping = false
+		updateFPS()
 	}
 }
 
 func bounce() {
 	direction := 1
 	mode = Bounce
+	updateFPS()
 	for mode == Bounce {
 		loadImage()
 		index += direction
@@ -188,6 +259,7 @@ func bounce() {
 	}
 	if mode == Stopped {
 		stopping = false
+		updateFPS()
 	}
 }
 
@@ -292,68 +364,22 @@ func handleKeys(k *fyne.KeyEvent) {
 
 	// increase animation speed - up arrow
 	if k.Name == fyne.KeyUp {
-		delay -= 10
-		if delay < 0 {
-			delay = 0
+		fpsIndex++
+		if fpsIndex >= len(fpsList) {
+			fpsIndex = len(fpsList) - 1
 		}
+		delay = 1000 / fpsList[fpsIndex]
+		updateFPS()
 	}
 
 	// decrease animation speed - down arrow
 	if k.Name == fyne.KeyDown {
-		delay += 10
-		if delay > 1000 {
-			delay = 1000
+		fpsIndex--
+		if fpsIndex < 0 {
+			fpsIndex = 0
 		}
-	}
-
-	// 30 fps - 0
-	if k.Name == fyne.Key0 {
-		delay = 30
-	}
-
-	// 1 fps - 1
-	if k.Name == fyne.Key1 {
-		delay = 1000
-	}
-
-	// 2 fps - 2
-	if k.Name == fyne.Key2 {
-		delay = 1000 / 2
-	}
-
-	// 3 fps - 3
-	if k.Name == fyne.Key3 {
-		delay = 1000 / 3
-	}
-
-	// 4 fps - 4
-	if k.Name == fyne.Key4 {
-		delay = 1000 / 4
-	}
-
-	// 5 fps - 5
-	if k.Name == fyne.Key5 {
-		delay = 1000 / 5
-	}
-
-	// 6 fps - 6
-	if k.Name == fyne.Key6 {
-		delay = 1000 / 6
-	}
-
-	// 7 fps - 7
-	if k.Name == fyne.Key7 {
-		delay = 1000 / 7
-	}
-
-	// 8 fps - 8
-	if k.Name == fyne.Key8 {
-		delay = 1000 / 8
-	}
-
-	// 9 fps - 9
-	if k.Name == fyne.Key9 {
-		delay = 1000 / 9
+		delay = 1000 / fpsList[fpsIndex]
+		updateFPS()
 	}
 
 	// watch dir - W
@@ -362,14 +388,16 @@ func handleKeys(k *fyne.KeyEvent) {
 		if watchDir {
 			go watch()
 		}
+		updateWatchLabel()
 	}
 
 	// decrease watch time - comma (<)
 	if k.Name == fyne.KeyComma {
 		watchTime--
-		if watchTime < 0 {
-			watchTime = 0
+		if watchTime < 1 {
+			watchTime = 1
 		}
+		updateWatchLabel()
 	}
 
 	// increase watch time - comma (>)
@@ -378,6 +406,7 @@ func handleKeys(k *fyne.KeyEvent) {
 		if watchTime > 10 {
 			watchTime = 10
 		}
+		updateWatchLabel()
 	}
 
 	// manually refresh image list - F5

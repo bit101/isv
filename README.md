@@ -26,8 +26,6 @@ Press the same key again to turn off animation, or just press the space bar.
 
 You can use the up arrow key to increase the playback speed, which will eventually remove any delay between frames and play them back as fast as your computer can handle them. Press the down arrow key to slow down the speed. Minimum speed is 1 fps. 
 
-You can also use the number keys 1-9 to target 1-9 fps. Or 0 to go back to the default 30 fps.
-
 ### Watching the image list
 
 Again, the main use case is previewing an image sequence that is currently being rendered. By default, `isv` reads the directory on startup and caches the image list. But as new frames come in, you want to update that list from time to time.
@@ -45,11 +43,11 @@ Press `w` to start "watching" the directory. Technically, it's just reloading ev
 - `l` last frame
 - `up arrow` increase playback rate
 - `down arrow` decrease playback rate
-- `1` - `9` to set playback rate to 1-9 fps
-- `0` to set playback rate to 30 fps
 - `w` to start watching the directory
 - `<` (or `,`) to increase refresh rate
 - `>` (or `.`) to decrease refresh rate
+- `space` stop
+- `q` or `esc` quit
 
 ### Command line usage
 
@@ -63,6 +61,7 @@ Options:
   -b, --bounce      plays the image sequence back and forth on start
   -h, --help        shows this help
   -p, --play        plays the image sequence on start
+  -r, --reverse     plays the image sequence in reverse on start
   -v, --version     shows the version number
   -w, --watch int   rescans dir every n (1-10) seconds
 ```
@@ -77,8 +76,6 @@ As already mentioned, `isv` is NOT meant to be a general purpose image viewer. I
 Any stated frame rates are only an approximation and not guaranteed.
 
 `isv` only previews `jpg`, `jpeg` and `png` files currently.
-
-At this writing, I've only tested this on Ubuntu 24.04.
 
 ## Installation
 
@@ -103,7 +100,3 @@ May not work on Windows without additional tool chain items, like gcc or clang.
 
 Download binary for your platform from [https://github.com/bit101/isv/releases](https://github.com/bit101/isv/releases) and move to a location in your path.
 
-
-## Future
-
-I do plan to add some basic ui features, tbd.
