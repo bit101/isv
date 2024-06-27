@@ -81,24 +81,24 @@ Any stated frame rates are only an approximation and not guaranteed.
 
 ### Locally
 
-May not compile locally on Windows without additional tool chain items, like gcc or clang.
-
 0. Install Go.
 1. Check out the repo.
 2. Run `go mod tidy` to update dependencies.
 3. Run `go build` to create the binary.
 4. Or run `go install` to install the binary on your system.
 
-### Go install
+You may still need additional tool chain items, like gcc or clang installed.
 
-May not install with this method on Windows without additional tool chain items, like gcc or clang.
+### Go install
 
 0. Install Go.
 1. Run `go install github.com/bit101/isv`
 
+You may still need additional tool chain items, like gcc or clang installed.
+
 ### Binaries
 
-The precompiled binaries should work for all of the targeted systems - Linux amd64, Windows amd64, MacOS arm64.
+The precompiled binaries should work for all of the targeted systems - Linux amd64, Windows amd64, MacOS arm64. No other dependencies required.
 
 Download binary for your platform from [https://github.com/bit101/isv/releases](https://github.com/bit101/isv/releases) and move to a location in your path.
 
