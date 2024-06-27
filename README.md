@@ -102,3 +102,16 @@ The precompiled binaries should work for all of the targeted systems - Linux amd
 
 Download binary for your platform from [https://github.com/bit101/isv/releases](https://github.com/bit101/isv/releases) and move to a location in your path.
 
+#### Known issue on MacOS
+
+Running the precompiled binary on MacOS may cause an error.
+
+From [https://docs.fyne.io/faq/troubleshoot](https://docs.fyne.io/faq/troubleshoot):
+
+> Q: Apple macOS says my app is damaged when it is downloaded
+>
+> A: When files are downloaded on a macOS computer they are marked with a “quarantine” flag so they are checked by the OS for problems. If your application is signed with a certificate purchased from Apple this is not a problem. However if you want to share your software without that cost this error may appear - and on M1/2 computers it is not possible to use the System Settings to allow the app to run.
+>
+> The fix is to remove the quarantine flag, which you can do by opening the Terminal and executing the following command:
+>
+> `sudo xattr -r -d com.apple.quarantine MyApp.app`
